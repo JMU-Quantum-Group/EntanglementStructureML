@@ -26,7 +26,3 @@ class QuantumStateDataset(Dataset):
         data_vector = self.data[idx].flatten()
         return data_vector, self.labels[idx]
 
-
-if __name__ == "__main__":
-    data = torch.randn(100, 10, 10)
-    labels = torch.randint(0, 2, (100, 1))
