@@ -48,10 +48,10 @@ if __name__ == "__main__":
 
     for _ in range(num_of_quantum_state):
         # 生成一个1到15的随机数设为a
-        a = np.random.randint(1, 16)
+        a = np.random.randint(1, num_of_quantum_state)
 
         # 生成一个长度为a的list，标记为b，里面每个数是0到499
-        b = np.random.randint(500, size=a)
+        b = np.random.randint(num_of_quantum_state, size=a)
 
         # 生成一个长度为a的list，标记为c，每个数是0到1的小数，然后总和为1
         c = np.random.dirichlet(np.ones(a), size=1)[0]
@@ -60,14 +60,17 @@ if __name__ == "__main__":
 
         full_sep_state_list.append(result)
 
-    not_full_sep_state_list = list()
-    for _ in range(2 * num_of_quantum_state):
-        current_state = random_state(n_qubit)
-        not_full_sep_state_list.append(current_state)
+    # not_full_sep_state_list = list()
+    # for _ in range(2 * num_of_quantum_state):
+    #     current_state = random_state(n_qubit)
+    #     not_full_sep_state_list.append(current_state)
+    #
+    # matrices = full_sep_state_list + not_full_sep_state_list
 
-    matrices = full_sep_state_list + not_full_sep_state_list
-    labels = [0] * 1000 + [1] * 1000
+    labels = [0] * (2 * num_of_quantum_state)
 
-    np.save('matrices.npy', matrices)
-    np.save('labels.npy', labels)
+    # np.save('full_sep_states.npy', full_sep_state_list)
+    # np.save('full_sep_labels.npy', labels)
+    np.save('full_sep_states_test.npy', full_sep_state_list)
+    np.save('full_sep_labels_test.npy', labels)
 
