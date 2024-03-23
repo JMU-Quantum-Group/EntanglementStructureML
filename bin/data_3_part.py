@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
             result, p_value = checkout_quantum_state(new_state)
             train_matrix = generate_train_matrix(new_state)
-            part_3_data_list.append(generate_train_matrix(new_state))
+            part_3_data_list.append(train_matrix)
             if result:
                 the_matrix = np.float64(p_value) * train_matrix + np.float64(1 - p_value) * I
                 part_3_data_list.append(the_matrix)
