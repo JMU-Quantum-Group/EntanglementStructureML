@@ -6,7 +6,7 @@ import torch
 from sympy import symbols, GreaterThan, solve_univariate_inequality
 
 from Full_Sep_SDP import sigma_x, sigma_z, sigma_y
-from bin.data_full_sep import random_point_on_sphere
+from bin.data_full_sep import random_point_on_sphere, generate_train_matrix
 
 
 def checkout_2_entanglement_state(rho):
@@ -93,33 +93,12 @@ def checkout_quantum_state(current_state):
     return result, p_value
 
 
-def handle_state(current_state, pure_state, part_3_data_list):
+def handle_u_matrix(current_state):
     u_numbers = np.random.uniform(0, 2 * np.pi, 12)
     u_list = get_u_list(u_numbers)
     u_matrix = np.kron(u_list[0], np.kron(u_list[1], np.kron(u_list[2], u_list[3])))
     new_state = u_matrix @ current_state @ np.transpose(u_matrix.conj())
-    result, p_value = checkout_quantum_state(new_state)
-    if result:
-        pure_state.append(new_state)
-        upper_triangular_real = np.triu(np.real(new_state))
-        lower_triangular_imag = np.tril(np.imag(new_state))
-        handle_matrix = np.array(upper_triangular_real + lower_triangular_imag)
-        part_3_data_list.append(handle_matrix)
-
-        I = np.eye(16) / 16
-        the_matrix = np.float64(p_value) * handle_matrix + np.float64(1 - p_value) * I
-        part_3_data_list.append(the_matrix)
-
-def handle_state_2(current_state, part_3_data_list):
-    u_numbers = np.random.uniform(0, 2 * np.pi, 12)
-    u_list = get_u_list(u_numbers)
-    u_matrix = np.kron(u_list[0], np.kron(u_list[1], np.kron(u_list[2], u_list[3])))
-    new_state = u_matrix @ current_state @ np.transpose(u_matrix.conj())
-
-    upper_triangular_real = np.triu(np.real(new_state))
-    lower_triangular_imag = np.tril(np.imag(new_state))
-    handle_matrix = np.array(upper_triangular_real + lower_triangular_imag)
-    part_3_data_list.append(handle_matrix)
+    return new_state
 
 
 def get_exchange_matrix(n_qubit):
@@ -142,29 +121,34 @@ def get_exchange_matrix(n_qubit):
     return exchange_matrix, exchange_matrix_np
 
 
+def generate_2_entanglement():
+    r1 = random.random()
+    r2 = random.random()
+    r3 = random.random()
+    r4 = random.random()
+
+    s = r1 ** 2 + r2 ** 2 + r3 ** 2 + r4 ** 2
+    scale = math.sqrt(s)
+    a = r1 / scale
+    b = r2 / scale
+    c = r3 / scale
+    d = r4 / scale
+
+    current_part = np.outer(np.array([a + b * 1j, 0, 0, c + d * 1j]),
+                            np.array([a + b * 1j, 0, 0, c + d * 1j]).conj())
+    return current_part
+
+
 if __name__ == "__main__":
     n_qubit = 4
-    num_of_quantum_state = 500
+    num_of_quantum_state = 1000
+    I = np.eye(16) / 16
 
     exchange_matrix, exchange_matrix_np = get_exchange_matrix(n_qubit)
     entanglement_2_qubit = list()
     entanglement_2_qubit.append(0.5 * (np.outer(np.array([1, 0, 0, 1]), np.array([1, 0, 0, 1]).conj())))
     for _ in range(num_of_quantum_state):
-        r1 = random.random()
-        r2 = random.random()
-        r3 = random.random()
-        r4 = random.random()
-
-        s = r1 ** 2 + r2 ** 2 + r3 ** 2 + r4 ** 2
-        scale = math.sqrt(s)
-        a = r1 / scale
-        b = r2 / scale
-        c = r3 / scale
-        d = r4 / scale
-
-        current_part = np.outer(np.array([a + b * 1j, 0, 0, c + d * 1j]),
-                                np.array([a + b * 1j, 0, 0, c + d * 1j]).conj())
-        entanglement_2_qubit.append(current_part)
+        entanglement_2_qubit.append(generate_2_entanglement())
 
     part_3_data_list = list()
     pure_state = list()
@@ -198,33 +182,36 @@ if __name__ == "__main__":
         current_state_list.append(np.kron(entanglement_2_qubit[index_1], np.kron(current_qubit_1, current_qubit_2)))
 
         for current_state in current_state_list:
-            handle_state_2(current_state, part_3_data_list)
+            new_state = handle_u_matrix(current_state)
+            pure_state.append(new_state)
+
+            result, p_value = checkout_quantum_state(new_state)
+            train_matrix = generate_train_matrix(new_state)
+            part_3_data_list.append(generate_train_matrix(new_state))
+            if result:
+                the_matrix = np.float64(p_value) * train_matrix + np.float64(1 - p_value) * I
+                part_3_data_list.append(the_matrix)
 
         print("index:", index_1)
 
-    # convex_state_list = list()
-    # for _ in range(num_of_quantum_state):
-    #     # 生成一个1到15的随机数设为a
-    #     a = np.random.randint(1, num_of_quantum_state)
-    #
-    #     # 生成一个长度为a的list，标记为b，里面每个数是0到499
-    #     b = np.random.randint(num_of_quantum_state, size=a)
-    #
-    #     # 生成一个长度为a的list，标记为c，每个数是0到1的小数，然后总和为1
-    #     c = np.random.dirichlet(np.ones(a), size=1)[0]
-    #
-    #     convex_state = sum(c[i] * pure_state[b[i]] for i in range(a))
-    #     result, p_value = checkout_quantum_state(convex_state)
-    #     if result:
-    #         upper_triangular_real = np.triu(np.real(convex_state))
-    #         lower_triangular_imag = np.tril(np.imag(convex_state))
-    #         handle_matrix = np.array(upper_triangular_real + lower_triangular_imag)
-    #         part_3_data_list.append(handle_matrix)
-    #
-    #         I = np.eye(16) / 16
-    #         the_matrix = np.float64(p_value) * handle_matrix + np.float64(1 - p_value) * I
-    #         part_3_data_list.append(the_matrix)
-    #     print("convex index:", _)
+    convex_state_list = list()
+    for _ in range(num_of_quantum_state):
+        a = np.random.randint(1, len(pure_state))
+
+        b = np.random.randint(num_of_quantum_state, size=a)
+
+        c = np.random.dirichlet(np.ones(a), size=1)[0]
+
+        convex_state = sum(c[i] * pure_state[b[i]] for i in range(a))
+        result, p_value = checkout_quantum_state(convex_state)
+        if result:
+            train_matrix = generate_train_matrix(convex_state)
+            part_3_data_list.append(train_matrix)
+
+            I = np.eye(16) / 16
+            the_matrix = np.float64(p_value) * train_matrix + np.float64(1 - p_value) * I
+            part_3_data_list.append(the_matrix)
+        print("convex index:", _)
 
     labels = [1] * len(part_3_data_list)
 

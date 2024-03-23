@@ -3,6 +3,13 @@ import numpy as np
 from Full_Sep_SDP import sigma_x, sigma_y, sigma_z
 
 
+def generate_train_matrix(current_state):
+    upper_triangular_real = np.triu(np.real(current_state))
+    lower_triangular_imag = np.tril(np.imag(current_state))
+    result = np.array(upper_triangular_real + lower_triangular_imag)
+    return result
+
+
 def random_state(n_qubit):
     n = 2 ** n_qubit
     real_current_matrix = np.random.rand(n, n)
@@ -40,37 +47,25 @@ if __name__ == "__main__":
             qubit_list.append(current_qubit)
         current_state = np.kron(qubit_list[0], np.kron(qubit_list[1], np.kron(qubit_list[2], qubit_list[3])))
 
-        upper_triangular_real = np.triu(np.real(current_state))
-        lower_triangular_imag = np.tril(np.imag(current_state))
-        result = np.array(upper_triangular_real + lower_triangular_imag)
+        full_sep_state_list.append(generate_train_matrix(current_state))
+
+    for _ in range(num_of_quantum_state):
+        # 生成一个1到15的随机数设为a
+        a = np.random.randint(1, num_of_quantum_state)
+
+        # 生成一个长度为a的list，标记为b，里面每个数是0到499
+        b = np.random.randint(num_of_quantum_state, size=a)
+
+        # 生成一个长度为a的list，标记为c，每个数是0到1的小数，然后总和为1
+        c = np.random.dirichlet(np.ones(a), size=1)[0]
+
+        result = sum(c[i] * full_sep_state_list[b[i]] for i in range(a))
 
         full_sep_state_list.append(result)
 
-    # for _ in range(num_of_quantum_state):
-    #     # 生成一个1到15的随机数设为a
-    #     a = np.random.randint(1, num_of_quantum_state)
-    #
-    #     # 生成一个长度为a的list，标记为b，里面每个数是0到499
-    #     b = np.random.randint(num_of_quantum_state, size=a)
-    #
-    #     # 生成一个长度为a的list，标记为c，每个数是0到1的小数，然后总和为1
-    #     c = np.random.dirichlet(np.ones(a), size=1)[0]
-    #
-    #     result = sum(c[i] * full_sep_state_list[b[i]] for i in range(a))
-    #
-    #     full_sep_state_list.append(result)
-
-    # not_full_sep_state_list = list()
-    # for _ in range(2 * num_of_quantum_state):
-    #     current_state = random_state(n_qubit)
-    #     not_full_sep_state_list.append(current_state)
-    #
-    # matrices = full_sep_state_list + not_full_sep_state_list
-
-    labels = [0] * num_of_quantum_state
+    labels = [0] * len(full_sep_state_list)
 
     # np.save('full_sep_states.npy', full_sep_state_list)
     # np.save('full_sep_labels.npy', labels)
     np.save('full_sep_states_test.npy', full_sep_state_list)
     np.save('full_sep_labels_test.npy', labels)
-
