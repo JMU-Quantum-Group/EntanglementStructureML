@@ -4,4 +4,4 @@
 
 *__pycache__/
 
-*app.log
+bin/app.log
