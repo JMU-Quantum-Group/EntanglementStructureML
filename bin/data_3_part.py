@@ -196,9 +196,9 @@ if __name__ == "__main__":
 
     convex_state_list = list()
     for _ in range(num_of_quantum_state):
-        a = np.random.randint(1, len(pure_state))
+        a = np.random.randint(1, 50)
 
-        b = np.random.randint(num_of_quantum_state, size=a)
+        b = np.random.randint(len(pure_state), size=a)
 
         c = np.random.dirichlet(np.ones(a), size=1)[0]
 
@@ -215,8 +215,8 @@ if __name__ == "__main__":
 
     labels = [1] * len(part_3_data_list)
 
-    # np.save('part_3_pure_states.npy', part_3_data_list)
-    # np.save('part_3_pure_labels.npy', labels)
-
-    np.save('part_3_pure_states_test.npy', part_3_data_list)
-    np.save('part_3_pure_labels_test.npy', labels)
+    np.save('part_3_states.npy', part_3_data_list)
+    np.save('part_3_labels.npy', labels)
+    #
+    # np.save('part_3_states_test.npy', part_3_data_list)
+    # np.save('part_3_labels_test.npy', labels)
