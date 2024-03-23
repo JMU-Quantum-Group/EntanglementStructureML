@@ -1,6 +1,8 @@
+import math
+import random
+
 import numpy as np
 import torch
-from picos import Constant
 from sympy import symbols, GreaterThan, solve_univariate_inequality
 
 from Full_Sep_SDP import sigma_x, sigma_z, sigma_y
@@ -8,12 +10,12 @@ from bin.data_full_sep import random_point_on_sphere
 
 
 def checkout_2_entanglement_state(rho):
-    rho_picos = Constant("rho_picos", rho, (4, 4))
-    rho_pt = rho_picos.partial_transpose(0)
+    rho_ppt = [[rho[0, 0], rho[0, 1], rho[2, 0], rho[2, 1]],
+               [rho[1, 0], rho[1, 1], rho[3, 0], rho[3, 1]],
+               [rho[0, 2], rho[0, 3], rho[2, 2], rho[2, 3]],
+               [rho[1, 2], rho[1, 3], rho[3, 2], rho[3, 3]]]
 
-    print(np.array(rho_pt.value[0]))
-
-    if np.all(np.linalg.eigvals(np.array(rho_pt.value)) >= 0):
+    if np.all(np.linalg.eigvals(np.array(rho_ppt)) >= 0):
         return False
     else:
         return True
@@ -91,27 +93,36 @@ def checkout_quantum_state(current_state):
     return result, p_value
 
 
-def handle_state(current_state, part_3_data_list):
-    upper_triangular_real = np.triu(np.real(current_state))
-    lower_triangular_imag = np.tril(np.imag(current_state))
-    handle_matrix = np.array(upper_triangular_real + lower_triangular_imag)
-    part_3_data_list.append(handle_matrix)
-
+def handle_state(current_state, pure_state, part_3_data_list):
     u_numbers = np.random.uniform(0, 2 * np.pi, 12)
     u_list = get_u_list(u_numbers)
     u_matrix = np.kron(u_list[0], np.kron(u_list[1], np.kron(u_list[2], u_list[3])))
     new_state = u_matrix @ current_state @ np.transpose(u_matrix.conj())
     result, p_value = checkout_quantum_state(new_state)
     if result:
+        pure_state.append(new_state)
+        upper_triangular_real = np.triu(np.real(new_state))
+        lower_triangular_imag = np.tril(np.imag(new_state))
+        handle_matrix = np.array(upper_triangular_real + lower_triangular_imag)
+        part_3_data_list.append(handle_matrix)
+
         I = np.eye(16) / 16
         the_matrix = np.float64(p_value) * handle_matrix + np.float64(1 - p_value) * I
         part_3_data_list.append(the_matrix)
 
+def handle_state_2(current_state, part_3_data_list):
+    u_numbers = np.random.uniform(0, 2 * np.pi, 12)
+    u_list = get_u_list(u_numbers)
+    u_matrix = np.kron(u_list[0], np.kron(u_list[1], np.kron(u_list[2], u_list[3])))
+    new_state = u_matrix @ current_state @ np.transpose(u_matrix.conj())
 
-if __name__ == "__main__":
-    n_qubit = 4
-    num_of_quantum_state = 10
+    upper_triangular_real = np.triu(np.real(new_state))
+    lower_triangular_imag = np.tril(np.imag(new_state))
+    handle_matrix = np.array(upper_triangular_real + lower_triangular_imag)
+    part_3_data_list.append(handle_matrix)
 
+
+def get_exchange_matrix(n_qubit):
     exchange_matrix = list()
     exchange_matrix_np = list()
     for num1 in range(n_qubit):
@@ -128,92 +139,97 @@ if __name__ == "__main__":
             temp_matrix_list_np.append(np.matrix(the_matrix))
         exchange_matrix.append(temp_matrix_list)
         exchange_matrix_np.append(temp_matrix_list_np)
+    return exchange_matrix, exchange_matrix_np
+
+
+if __name__ == "__main__":
+    n_qubit = 4
+    num_of_quantum_state = 500
+
+    exchange_matrix, exchange_matrix_np = get_exchange_matrix(n_qubit)
+    entanglement_2_qubit = list()
+    entanglement_2_qubit.append(0.5 * (np.outer(np.array([1, 0, 0, 1]), np.array([1, 0, 0, 1]).conj())))
+    for _ in range(num_of_quantum_state):
+        r1 = random.random()
+        r2 = random.random()
+        r3 = random.random()
+        r4 = random.random()
+
+        s = r1 ** 2 + r2 ** 2 + r3 ** 2 + r4 ** 2
+        scale = math.sqrt(s)
+        a = r1 / scale
+        b = r2 / scale
+        c = r3 / scale
+        d = r4 / scale
+
+        current_part = np.outer(np.array([a + b * 1j, 0, 0, c + d * 1j]),
+                                np.array([a + b * 1j, 0, 0, c + d * 1j]).conj())
+        entanglement_2_qubit.append(current_part)
 
     part_3_data_list = list()
-    for _ in range(num_of_quantum_state):
+    pure_state = list()
+    for index_1 in range(num_of_quantum_state):
         x_1, y_1, z_1 = random_point_on_sphere()
         current_qubit_1 = 0.5 * (np.eye(2) + x_1 * sigma_x + y_1 * sigma_y + z_1 * sigma_z)
 
         x_2, y_2, z_2 = random_point_on_sphere()
         current_qubit_2 = 0.5 * (np.eye(2) + x_2 * sigma_x + y_2 * sigma_y + z_2 * sigma_z)
 
-        current_part = 0.5 * (np.outer(np.array([1, 0, 0, 1]), np.array([1, 0, 0, 1]).conj()))
-
-        # print(checkout_2_entanglement_state(current_part))
-
         current_state_list = list()
 
-        # 1,4  1,3, 2,4
-
-        current_state_list.append(np.kron(current_qubit_1, np.kron(current_qubit_2, current_part)))  # 1|2|3,4
         current_state_list.append(
-            exchange_matrix_np[0][3 - 0 - 1] * np.kron(current_qubit_1, np.kron(current_qubit_2, current_part)) *
-            exchange_matrix_np[0][3 - 0 - 1])
-        current_state_list.append(
-            exchange_matrix_np[0][2 - 0 - 1] * np.kron(current_qubit_1, np.kron(current_qubit_2, current_part)) *
-            exchange_matrix_np[0][2 - 0 - 1])
-        current_state_list.append(
-            exchange_matrix_np[1][2 - 1 - 1] * np.kron(current_qubit_1, np.kron(current_qubit_2, current_part)) *
-            exchange_matrix_np[1][2 - 1 - 1])
-
-        current_state_list.append(np.kron(current_qubit_1, np.kron(current_part, current_qubit_2)))  # 1|2,3|4
-        current_state_list.append(
-            exchange_matrix_np[0][1 - 0 - 1] * np.kron(current_qubit_1, np.kron(current_part, current_qubit_2)) *
-            exchange_matrix_np[0][1 - 0 - 1])
-        current_state_list.append(
-            exchange_matrix_np[1][3 - 1 - 1] * np.kron(current_qubit_1, np.kron(current_part, current_qubit_2)) *
-            exchange_matrix_np[1][3 - 1 - 1])
-
-        current_state_list.append(np.kron(current_qubit_2, np.kron(current_qubit_1, current_part)))
-        current_state_list.append(
-            exchange_matrix_np[0][3 - 0 - 1] * np.kron(current_qubit_2, np.kron(current_qubit_1, current_part)) *
-            exchange_matrix_np[0][3 - 0 - 1])
-        current_state_list.append(
-            exchange_matrix_np[0][2 - 0 - 1] * np.kron(current_qubit_2, np.kron(current_qubit_1, current_part)) *
-            exchange_matrix_np[0][2 - 0 - 1])
-        current_state_list.append(
-            exchange_matrix_np[1][2 - 1 - 1] * np.kron(current_qubit_2, np.kron(current_qubit_1, current_part)) *
-            exchange_matrix_np[1][2 - 1 - 1])
-
-        current_state_list.append(np.kron(current_qubit_2, np.kron(current_part, current_qubit_1)))
-        current_state_list.append(
-            exchange_matrix_np[0][1 - 0 - 1] * np.kron(current_qubit_2, np.kron(current_part, current_qubit_1)) *
-            exchange_matrix_np[0][1 - 0 - 1])
-        current_state_list.append(
-            exchange_matrix_np[1][3 - 1 - 1] * np.kron(current_qubit_2, np.kron(current_part, current_qubit_1)) *
-            exchange_matrix_np[1][3 - 1 - 1])
-
-        current_state_list.append(np.kron(current_part, np.kron(current_qubit_2, current_qubit_1)))
-        current_state_list.append(
-            exchange_matrix_np[0][3 - 0 - 1] * np.kron(current_part, np.kron(current_qubit_2, current_qubit_1)) *
-            exchange_matrix_np[0][3 - 0 - 1])
-        current_state_list.append(
-            exchange_matrix_np[1][3 - 1 - 1] * np.kron(current_part, np.kron(current_qubit_2, current_qubit_1)) *
-            exchange_matrix_np[1][3 - 1 - 1])
-        current_state_list.append(
-            exchange_matrix_np[1][2 - 1 - 1] * np.kron(current_part, np.kron(current_qubit_2, current_qubit_1)) *
-            exchange_matrix_np[1][2 - 1 - 1])
-
-        current_state_list.append(np.kron(current_part, np.kron(current_qubit_1, current_qubit_2)))
-        current_state_list.append(
-            exchange_matrix_np[0][3 - 0 - 1] * np.kron(current_part, np.kron(current_qubit_1, current_qubit_2)) *
-            exchange_matrix_np[0][3 - 0 - 1])
-        current_state_list.append(
-            exchange_matrix_np[1][3 - 1 - 1] * np.kron(current_part, np.kron(current_qubit_1, current_qubit_2)) *
-            exchange_matrix_np[1][3 - 1 - 1])
-        current_state_list.append(
-            exchange_matrix_np[1][2 - 1 - 1] * np.kron(current_part, np.kron(current_qubit_1, current_qubit_2)) *
-            exchange_matrix_np[1][2 - 1 - 1])
+            np.kron(current_qubit_1, np.kron(current_qubit_2, entanglement_2_qubit[index_1])))  # 1|2|3,4
+        current_state_list.append(exchange_matrix_np[0][2 - 0 - 1] * np.kron(current_qubit_1, np.kron(current_qubit_2,
+                                                                                                      entanglement_2_qubit[
+                                                                                                          index_1])) *
+                                  exchange_matrix_np[0][2 - 0 - 1])
+        current_state_list.append(exchange_matrix_np[1][2 - 1 - 1] * np.kron(current_qubit_1, np.kron(current_qubit_2,
+                                                                                                      entanglement_2_qubit[
+                                                                                                          index_1])) *
+                                  exchange_matrix_np[1][2 - 1 - 1])
+        current_state_list.append(exchange_matrix_np[0][3 - 0 - 1] * np.kron(current_qubit_1, np.kron(current_qubit_2,
+                                                                                                      entanglement_2_qubit[
+                                                                                                          index_1])) *
+                                  exchange_matrix_np[0][3 - 0 - 1])
+        current_state_list.append(exchange_matrix_np[1][3 - 1 - 1] * np.kron(current_qubit_1, np.kron(current_qubit_2,
+                                                                                                      entanglement_2_qubit[
+                                                                                                          index_1])) *
+                                  exchange_matrix_np[1][3 - 1 - 1])
+        current_state_list.append(np.kron(entanglement_2_qubit[index_1], np.kron(current_qubit_1, current_qubit_2)))
 
         for current_state in current_state_list:
-            handle_state(current_state, part_3_data_list)
+            handle_state_2(current_state, part_3_data_list)
 
-        print("index:", _)
+        print("index:", index_1)
+
+    # convex_state_list = list()
+    # for _ in range(num_of_quantum_state):
+    #     # 生成一个1到15的随机数设为a
+    #     a = np.random.randint(1, num_of_quantum_state)
+    #
+    #     # 生成一个长度为a的list，标记为b，里面每个数是0到499
+    #     b = np.random.randint(num_of_quantum_state, size=a)
+    #
+    #     # 生成一个长度为a的list，标记为c，每个数是0到1的小数，然后总和为1
+    #     c = np.random.dirichlet(np.ones(a), size=1)[0]
+    #
+    #     convex_state = sum(c[i] * pure_state[b[i]] for i in range(a))
+    #     result, p_value = checkout_quantum_state(convex_state)
+    #     if result:
+    #         upper_triangular_real = np.triu(np.real(convex_state))
+    #         lower_triangular_imag = np.tril(np.imag(convex_state))
+    #         handle_matrix = np.array(upper_triangular_real + lower_triangular_imag)
+    #         part_3_data_list.append(handle_matrix)
+    #
+    #         I = np.eye(16) / 16
+    #         the_matrix = np.float64(p_value) * handle_matrix + np.float64(1 - p_value) * I
+    #         part_3_data_list.append(the_matrix)
+    #     print("convex index:", _)
 
     labels = [1] * len(part_3_data_list)
 
-    # np.save('part_3_states.npy', part_3_data_list)
-    # np.save('part_3_labels.npy', labels)
+    # np.save('part_3_pure_states.npy', part_3_data_list)
+    # np.save('part_3_pure_labels.npy', labels)
 
-    np.save('part_3_states_test.npy', part_3_data_list)
-    np.save('part_3_labels_test.npy', labels)
+    np.save('part_3_pure_states_test.npy', part_3_data_list)
+    np.save('part_3_pure_labels_test.npy', labels)

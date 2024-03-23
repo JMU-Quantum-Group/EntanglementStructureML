@@ -1,5 +1,22 @@
 import numpy as np
 
+import numpy as np
+
+def find_boundary(arr):
+    # 检查数组是否满足条件：前面全是0，后面全是1
+    if np.all(arr[:np.where(arr==1)[0][0]] == 0) and np.all(arr[np.where(arr==1)[0][0]:] == 1):
+        return np.where(arr==1)[0][0]
+    else:
+        return False
+
+# 测试代码
+arr = np.array([0, 0, 0, 1, 1, 1])
+print(find_boundary(arr))  # 输出：3
+
+arr = np.array([0, 0, 1, 0, 1, 1])
+print(find_boundary(arr))  # 输出：False
+
+
 # 生成一个0到15的随机数设为a
 a = np.random.randint(16)
 
