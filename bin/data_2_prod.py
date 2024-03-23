@@ -1,5 +1,6 @@
 import numpy as np
 from sympy import symbols, GreaterThan, solve_univariate_inequality
+import sympy
 
 from bin.create_dataset import select_elements, decimal_to_binary
 from bin.data_3_part import generate_2_entanglement, get_exchange_matrix, handle_u_matrix
@@ -26,8 +27,10 @@ def compute_2_prod(current_state):
     inequality = GreaterThan(t * left_sum, expression)
 
     solution = solve_univariate_inequality(inequality, t)
-    p_value = solution.args[0].args[0]
-    return p_value
+    if not isinstance(solution.args[0].lhs, sympy.core.symbol.Symbol):
+        return solution.args[0].lhs
+    else:
+        return 10
 
 
 if __name__ == "__main__":
@@ -85,4 +88,6 @@ if __name__ == "__main__":
     np.save('prod_2_states.npy', prod_2_data_list)
     np.save('prod_2_labels.npy', labels)
 
+    # np.save('prod_2_states_test.npy', prod_2_data_list)
+    # np.save('prod_2_labels_test.npy', labels)
 

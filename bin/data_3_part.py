@@ -142,6 +142,7 @@ def generate_2_entanglement():
 if __name__ == "__main__":
     n_qubit = 4
     num_of_quantum_state = 1000
+    total_quantum_state = 3000
     I = np.eye(16) / 16
 
     exchange_matrix, exchange_matrix_np = get_exchange_matrix(n_qubit)
@@ -195,7 +196,7 @@ if __name__ == "__main__":
         print("index:", index_1)
 
     convex_state_list = list()
-    for _ in range(num_of_quantum_state):
+    while len(part_3_data_list) < total_quantum_state:
         a = np.random.randint(1, 50)
 
         b = np.random.randint(len(pure_state), size=a)
@@ -211,12 +212,11 @@ if __name__ == "__main__":
             I = np.eye(16) / 16
             the_matrix = np.float64(p_value) * train_matrix + np.float64(1 - p_value) * I
             part_3_data_list.append(the_matrix)
-        print("convex index:", _)
 
     labels = [1] * len(part_3_data_list)
 
-    np.save('part_3_states.npy', part_3_data_list)
-    np.save('part_3_labels.npy', labels)
+    # np.save('part_3_states.npy', part_3_data_list)
+    # np.save('part_3_labels.npy', labels)
     #
-    # np.save('part_3_states_test.npy', part_3_data_list)
-    # np.save('part_3_labels_test.npy', labels)
+    np.save('part_3_states_test.npy', part_3_data_list)
+    np.save('part_3_labels_test.npy', labels)
