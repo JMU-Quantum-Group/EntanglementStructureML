@@ -35,8 +35,10 @@ def compute_2_prod(current_state):
 
 if __name__ == "__main__":
     n_qubit = 4
-    num_of_quantum_state = 1000
-    total_quantum_state = 10000
+    # num_of_quantum_state = 2000
+    num_of_quantum_state = 600
+    # total_quantum_state = 10000
+    total_quantum_state = 3000
     I = np.eye(16) / 16
 
     exchange_matrix, exchange_matrix_np = get_exchange_matrix(n_qubit)
@@ -76,7 +78,7 @@ if __name__ == "__main__":
         c = np.random.dirichlet(np.ones(a), size=1)[0]
 
         convex_state = sum(c[i] * pure_state[b[i]] for i in range(a))
-        result, p_value = compute_2_prod(convex_state)
+        p_value = compute_2_prod(convex_state)
         if p_value < 1:
             train_matrix = generate_train_matrix(convex_state)
             prod_2_data_list.append(train_matrix)
@@ -85,9 +87,9 @@ if __name__ == "__main__":
             prod_2_data_list.append(the_matrix)
 
     labels = [2] * len(prod_2_data_list)
-    np.save('prod_2_states.npy', prod_2_data_list)
-    np.save('prod_2_labels.npy', labels)
+    # np.save('prod_2_states.npy', prod_2_data_list)
+    # np.save('prod_2_labels.npy', labels)
 
-    # np.save('prod_2_states_test.npy', prod_2_data_list)
-    # np.save('prod_2_labels_test.npy', labels)
+    np.save('prod_2_states_test.npy', prod_2_data_list)
+    np.save('prod_2_labels_test.npy', labels)
 

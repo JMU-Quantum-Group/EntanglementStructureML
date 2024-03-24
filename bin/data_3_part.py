@@ -141,7 +141,7 @@ def generate_2_entanglement():
 
 if __name__ == "__main__":
     n_qubit = 4
-    num_of_quantum_state = 1000
+    num_of_quantum_state = 200
     total_quantum_state = 3000
     I = np.eye(16) / 16
 
