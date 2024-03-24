@@ -37,7 +37,7 @@ test_labels = test_labels[indices]
 matrices = matrices.reshape(matrices.shape[0], matrices.shape[1] * matrices.shape[2])
 test_matrices = test_matrices.reshape(test_matrices.shape[0], test_matrices.shape[1] * test_matrices.shape[2])
 
-tpot = TPOTClassifier(generations=5, population_size=50, verbosity=2, random_state=14)
+tpot = TPOTClassifier(generations=5, population_size=20, verbosity=2, random_state=42)
 tpot.fit(matrices, labels)
 print(tpot.score(test_matrices, test_labels))
-tpot.export('tpot_data_pipeline.py')
+tpot.export('tpot_full_3part_pipeline.py')
