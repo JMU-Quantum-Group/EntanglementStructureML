@@ -1,11 +1,9 @@
 import numpy as np
-import pandas as pd
-from sklearn.metrics import classification_report
-from sklearn.model_selection import train_test_split
-from sklearn.pipeline import make_pipeline, make_union
+from sklearn.naive_bayes import GaussianNB
+from sklearn.pipeline import make_pipeline
 from tpot.builtins import StackingEstimator
-from xgboost import XGBClassifier
 from tpot.export_utils import set_param_recursive
+from xgboost import XGBClassifier
 
 full_sep_data = np.load('full_sep_states.npy', allow_pickle=True)
 full_sep_labels = np.load('full_sep_labels.npy', allow_pickle=True)
@@ -67,3 +65,5 @@ set_param_recursive(tpot_3part_2prod_pipeline.steps, 'random_state', 14)
 
 tpot_3part_2prod_pipeline.fit(training_features, training_target_2)
 results_3part_2prod = tpot_3part_2prod_pipeline.predict(testing_features)
+
+print(results_3part_2prod)
