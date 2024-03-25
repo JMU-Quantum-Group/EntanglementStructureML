@@ -4,7 +4,7 @@ from tpot import TPOTClassifier
 full_sep_data = np.load('full_sep_states.npy', allow_pickle=True)
 full_sep_labels = np.array([0] * full_sep_data.shape[0])
 
-part_3_data = np.load('part_3_pure_states.npy', allow_pickle=True)
+part_3_data = np.load('part_3_states.npy', allow_pickle=True)
 part_3_labels = np.array([1] * part_3_data.shape[0])
 
 prod_2_data = np.load('prod_2_states.npy', allow_pickle=True)
