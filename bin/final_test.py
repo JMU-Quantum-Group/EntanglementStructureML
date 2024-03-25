@@ -9,8 +9,8 @@ from xgboost import XGBClassifier
 full_sep_data = np.load('full_sep_states.npy', allow_pickle=True)
 full_sep_labels = np.load('full_sep_labels.npy', allow_pickle=True)
 
-part_3_data = np.load('part_3_pure_states.npy', allow_pickle=True)
-part_3_labels = np.load('part_3_pure_labels.npy', allow_pickle=True)
+part_3_data = np.load('part_3_states.npy', allow_pickle=True)
+part_3_labels = np.load('part_3_labels.npy', allow_pickle=True)
 
 prod_2_data = np.load('prod_2_states.npy', allow_pickle=True)
 prod_2_labels = np.load('prod_2_labels.npy', allow_pickle=True)
