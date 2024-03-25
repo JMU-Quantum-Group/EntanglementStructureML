@@ -39,6 +39,7 @@ if __name__ == "__main__":
 
     print("----------- full sep -------------")
     full_sep_state_list = list()
+    pure_state = list()
     for _ in range(num_of_quantum_state):
         qubit_list = list()
         for i in range(n_qubit):
@@ -47,6 +48,7 @@ if __name__ == "__main__":
             qubit_list.append(current_qubit)
         current_state = np.kron(qubit_list[0], np.kron(qubit_list[1], np.kron(qubit_list[2], qubit_list[3])))
 
+        pure_state.append(current_state)
         full_sep_state_list.append(generate_train_matrix(current_state))
 
     for _ in range(num_of_quantum_state):
@@ -56,9 +58,9 @@ if __name__ == "__main__":
 
         c = np.random.dirichlet(np.ones(a), size=1)[0]
 
-        result = sum(c[i] * full_sep_state_list[b[i]] for i in range(a))
+        result = sum(c[i] * pure_state[b[i]] for i in range(a))
 
-        full_sep_state_list.append(result)
+        full_sep_state_list.append(generate_train_matrix(result))
 
     labels = [0] * len(full_sep_state_list)
     print(len(full_sep_state_list))
